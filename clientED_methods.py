@@ -22,10 +22,10 @@ def dict_cities3_request(
         filename=(datetime.datetime.now()).strftime("%Y %m %d %H-%M-%S"),
         auth_token=basic_auth_token,
 ):
-    url = "https://ed.major-express.ru/edclients2.asmx"
+    url = cred.base_url
     headers = {
         "Content-Type": "text/xml; charset=utf-8",
-        "SOAPAction": "http://ltl-ws.major-express.ru/edclients/dict_Cities3",
+        "SOAPAction": f"{cred.methods_url}dict_Cities3",
         "Authorization": f"{auth_token}",
         "Accept": "*/*",
         "Host": "ed.major-express.ru",
@@ -33,12 +33,12 @@ def dict_cities3_request(
         "Connection": "keep-alive",
         "Content-Length": "1113",
     }
-    body = """<?xml version="1.0" encoding="utf-8"?>
+    body = f"""<?xml version="1.0" encoding="utf-8"?>
     <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
     <soap:Body>
-    <dict_Cities3 xmlns="http://ltl-ws.major-express.ru/edclients/" />
+    <dict_Cities3 xmlns="{cred.methods_url}" />
     </soap:Body>
     </soap:Envelope>"""
 
@@ -100,5 +100,5 @@ def citycode_search_v2(citycode, source=dict_cities3_request()[1]):
 
 
 # print(dict_cities3_request()[1][20])
-# print(city_search('Новороссийск'))
-# print(citycode_search_v2(72))
+print(city_search('Новороссийск'))
+print(citycode_search_v2(72))
