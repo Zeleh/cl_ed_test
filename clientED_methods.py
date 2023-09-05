@@ -19,8 +19,8 @@ basic_auth_token = basic_auth(cred.ed_client_username, cred.ed_client_password)
 
 
 def dict_cities3_request(
-    filename=(datetime.datetime.now()).strftime("%Y %m %d %H-%M-%S"),
-    auth_token=basic_auth_token,
+        filename=(datetime.datetime.now()).strftime("%Y %m %d %H-%M-%S"),
+        auth_token=basic_auth_token,
 ):
     url = "https://ed.major-express.ru/edclients2.asmx"
     headers = {
@@ -48,9 +48,9 @@ def dict_cities3_request(
     pretty_xml_as_string = q.toprettyxml()
     # print(pretty_xml_as_string)
     with open(
-        f"C:/tmp_garbage/soap_test/test_response_CL_ED {filename}.txt",
-        "a",
-        encoding="utf-8",
+            f"C:/tmp_garbage/soap_test/test_response_CL_ED {filename}.txt",
+            "a",
+            encoding="utf-8",
     ) as file:
         file.write(pretty_xml_as_string)
 
@@ -64,20 +64,41 @@ def dict_cities3_request(
     return pretty_xml_as_string, doc_list
 
 
-# print(dict_cities3_request())
-dict2 = {}
-dict1 = dict_cities3_request()[1]
-
-
-def city_search(cityname, source=dict1):
-    """Поиск кода города по его названию"""
+def city_search(cityname, source=dict_cities3_request()[1]):
+    """Поиск кода города по его названию с последовательным перебором общего
+    списка городов (Линейный поиск)"""
     for i in range(len(source)):
         if source[i]["Name"]["NameRus"] == cityname:
-            print(source[i]["Code"], i)
-            print(source[i])
-            return source[i]
+            # print(source[i]["Code"], i)
+            # print(source[i])
+            return i, source[i]
         else:
             continue
 
 
-print(city_search('Москва'))
+def citycode_search_v2(citycode, source=dict_cities3_request()[1]):
+    """Поиск информации о городе по его коду в отсортированному по возрастанию
+    общем списке городов посредством бинарного поиска"""
+    start = 0  # Переменная начала диапазона поиска
+    stop = len(source) - 1  # Переменная конца диапазона поиска
+    index = None  # Порядковый номер объекта в списке
+    loop_count = 1
+    while (start <= stop) and (index is None):
+        half = (start + stop) // 2
+        if int(source[half]['Code']) == citycode:
+            index = half
+        else:
+            loop_count += 1
+            if int(source[half]['Code']) > citycode:
+                stop = half - 1
+            else:
+                start = half + 1
+    if index is None:
+        return loop_count, "Код города не найден"
+    else:
+        return loop_count, index, source[index]
+
+
+# print(dict_cities3_request()[1][20])
+# print(city_search('Новороссийск'))
+# print(citycode_search_v2(72))
