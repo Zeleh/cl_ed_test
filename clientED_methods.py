@@ -22,23 +22,22 @@ def dict_cities3_request(
         filename=(datetime.datetime.now()).strftime("%Y %m %d %H-%M-%S"),
         auth_token=basic_auth_token,
 ):
-    url = "https://ed.major-express.ru/edclients2.asmx"
+    url = f"{cred.base_url}/edclients2.asmx"
     headers = {
         "Content-Type": "text/xml; charset=utf-8",
-        "SOAPAction": "http://ltl-ws.major-express.ru/edclients/dict_Cities3",
+        "SOAPAction": f"{cred.methods_url}/dict_Cities3",
         "Authorization": f"{auth_token}",
         "Accept": "*/*",
         "Host": "ed.major-express.ru",
         "Accept-Encoding": "gzip, deflate, br",
         "Connection": "keep-alive",
-        "Content-Length": "1113",
     }
-    body = """<?xml version="1.0" encoding="utf-8"?>
+    body = f"""<?xml version="1.0" encoding="utf-8"?>
     <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
     <soap:Body>
-    <dict_Cities3 xmlns="http://ltl-ws.major-express.ru/edclients/" />
+    <dict_Cities3 xmlns="{cred.methods_url}" />
     </soap:Body>
     </soap:Envelope>"""
 
@@ -48,57 +47,153 @@ def dict_cities3_request(
     pretty_xml_as_string = q.toprettyxml()
     # print(pretty_xml_as_string)
     with open(
-            f"C:/tmp_garbage/soap_test/test_response_CL_ED {filename}.txt",
+            f"C:/tmp_garbage/soap_test/test_Cities3{filename}.txt",
             "a",
             encoding="utf-8",
     ) as file:
         file.write(pretty_xml_as_string)
+    item_list = []
 
-    # def handle(path, item):
-    #     print('path:%s item:%s' % (path, item))
-    #     return True
-    doc = xmltodict.parse(pretty_xml_as_string)
-    doc_list = doc["soap:Envelope"]["soap:Body"]["dict_Cities3Response"][
-        "dict_Cities3Result"
-    ]["CityInfo"]
-    return pretty_xml_as_string, doc_list
+    def handle(path, item):
+        # print(item)
+        item_list.append(item)
+        return True
 
-
-def city_search(cityname, source=dict_cities3_request()[1]):
-    """Поиск кода города по его названию с последовательным перебором общего
-    списка городов (Линейный поиск)"""
-    for i in range(len(source)):
-        if source[i]["Name"]["NameRus"] == cityname:
-            # print(source[i]["Code"], i)
-            # print(source[i])
-            return i, source[i]
-        else:
-            continue
+    # def postprocessor(path, key, value):
+    #     try:
+    #         return key + ':int', int(value)
+    #     except (ValueError, TypeError):
+    #         return key, value
+    xmltodict.parse(pretty_xml_as_string,item_depth=5, item_callback=handle)
+    return item_list
 
 
-def citycode_search_v2(citycode, source=dict_cities3_request()[1]):
-    """Поиск информации о городе по его коду в отсортированному по возрастанию
-    общем списке городов посредством бинарного поиска"""
-    start = 0  # Переменная начала диапазона поиска
-    stop = len(source) - 1  # Переменная конца диапазона поиска
-    index = None  # Порядковый номер объекта в списке
-    loop_count = 1
-    while (start <= stop) and (index is None):
-        half = (start + stop) // 2
-        if int(source[half]['Code']) == citycode:
-            index = half
-        else:
-            loop_count += 1
-            if int(source[half]['Code']) > citycode:
-                stop = half - 1
+class TeSt:
+    def city_search(self, cityname, source=None):
+        """Поиск кода города по его названию с последовательным перебором общего
+        списка городов (Линейный поиск)"""
+        if source is None:
+            source = dict_cities3_request()
+        for i in range(len(source)):
+            if source[i]["Name"]["NameRus"] == cityname:
+                # print(source[i]["Code"], i)
+                # print(source[i])
+                return i, source[i]
             else:
-                start = half + 1
-    if index is None:
-        return loop_count, "Код города не найден"
-    else:
-        return loop_count, index, source[index]
+                continue
+
+    def citycode_search_v2(self, citycode, source=None):
+        """Поиск информации о городе по его коду в отсортированному по возрастанию
+        общем списке городов посредством бинарного поиска"""
+        if source is None:
+            source = dict_cities3_request()
+        start = 0  # Переменная начала диапазона поиска
+        stop = len(source) - 1  # Переменная конца диапазона поиска
+        index = None  # Порядковый номер объекта в списке
+        loop_count = 1
+        while (start <= stop) and (index is None):
+            half = (start + stop) // 2
+            if int(source[half]['Code']) == citycode:
+                index = half
+            else:
+                loop_count += 1
+                if int(source[half]['Code']) > citycode:
+                    stop = half - 1
+                else:
+                    start = half + 1
+        if index is None:
+            return loop_count, "Код города не найден"
+        else:
+            return loop_count, index, source[index]
 
 
-# print(dict_cities3_request()[1][20])
-# print(city_search('Новороссийск'))
-# print(citycode_search_v2(72))
+def dict_consignees(
+        filename=(datetime.datetime.now()).strftime("%Y %m %d %H-%M-%S"),
+        auth_token=basic_auth_token,
+                        ):
+    url = f"{cred.base_url}/edclients2.asmx"
+    headers = {
+        "Content-Type": "text/xml; charset=utf-8",
+        "SOAPAction": f"{cred.methods_url}/dict_Consignees",
+        "Authorization": f"{auth_token}",
+        "Accept": "*/*",
+        "Host": "ed.major-express.ru",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
+    }
+    body = f'''<?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body>
+        <dict_Consignees xmlns="{cred.methods_url}"/>
+        </soap:Body>
+        </soap:Envelope>'''
+
+    response = requests.post(url, data=body, headers=headers)
+    q = xml.dom.minidom.parseString(response.content)
+    pretty_xml_as_string = q.toprettyxml()
+    with open(
+            f"C:/tmp_garbage/soap_test/test_Consignee{filename}.txt",
+            "a",
+            encoding="utf-8",
+    ) as file:
+        file.write(pretty_xml_as_string)
+    item_list = []
+
+    def handle(path, item):
+        # print(item)
+        item_list.append(item)
+        return True
+    xmltodict.parse(pretty_xml_as_string, item_depth=5, item_callback=handle)
+    return item_list
+
+def dict_shippers(
+        filename=(datetime.datetime.now()).strftime("%Y %m %d %H-%M-%S"),
+        auth_token=basic_auth_token,
+                        ):
+    url = f"{cred.base_url}/edclients2.asmx"
+    headers = {
+        "Content-Type": "text/xml; charset=utf-8",
+        "SOAPAction": f"{cred.methods_url}/dict_Shippers",
+        "Authorization": f"{auth_token}",
+        "Accept": "*/*",
+        "Host": "ed.major-express.ru",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
+    }
+    body = f'''<?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body>
+        <dict_Shippers xmlns="{cred.methods_url}"/>
+        </soap:Body>
+        </soap:Envelope>'''
+    response = requests.post(url, data=body, headers=headers)
+    q = xml.dom.minidom.parseString(response.content)
+    pretty_xml_as_string = q.toprettyxml()
+    with open(
+            f"C:/tmp_garbage/soap_test/test_Shipper{filename}.txt",
+            "a",
+            encoding="utf-8",
+    ) as file:
+        file.write(pretty_xml_as_string)
+    item_list = []
+
+    def handle(path, item):
+        # print(item)
+        item_list.append(item)
+        return True
+
+    xmltodict.parse(pretty_xml_as_string, item_depth=5, item_callback=handle)
+    return item_list
+
+
+var = dict_cities3_request()
+print(var[0])
+var = TeSt()
+print('-'*10 + '\n' + str(var.city_search('Москва')))
+print('-'*10 + '\n' + str(var.citycode_search_v2(129)))
+print(dict_consignees()[0])
+print(dict_shippers()[0])
